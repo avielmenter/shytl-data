@@ -1,0 +1,166 @@
+import { Card, parseCard } from './card';
+import { err, ParseError } from './error';
+import { parseArray } from './parse';
+
+const parseCardArray = (cardStrings: string[]) => parseArray<Card>(levelOneStrings, str => {
+    if (typeof str !== "string")
+        return err<ParseError>("ParseError", "Not a valid card string: " + JSON.stringify(str));
+
+    const cardFields = str.split('*');
+
+    if (cardFields.length >= 2)
+        return parseCard({ text: cardFields.slice(1).join('*'), contentTag: cardFields[0] });   // if there are multiple asterisks, only split the array on the first one
+    else
+        return parseCard({ text: cardFields[0], contentTag: undefined });
+});
+
+const levelOneStrings = [
+    "What communities are you part of, if you're part of any?",
+    "Where are you based?Where are other places you've been?",
+    "How do you primarily get around where you live (public transit, Lyft/Uber, walking, driving…)",
+    "What's a slang word you've been really digging lately?How did you hear about it?",
+    "Do you use Tiktok?What do you like or dislike about it?",
+    "What's your favorite meme at the moment?",
+    "What's your favorite meme of all time (if you can name one… or a couple)",
+    "What is the biggest time sink for you online?",
+    "Do you dream of internet fame?Have you achieved it?",
+    "How early in your life did you start using computers or smartphones?",
+    "What's your favorite company/class you've been at?",
+    "How'd you get into tech?",
+    "What tech do you use in your everyday life?",
+    "What thing in tech do you think is designed brilliantly?",
+    "What thing in tech do you think is designed terribly?",
+    "What do you like to do after you get home from work?",
+    "If you could have any job without regard to salary, what would it be?",
+    "If you could live anywhere in the world, where?Why?",
+    "What company or industry are you hoping to get into? Or if you enjoy your current one, why?",
+    "What are you good at?",
+    "What's your weakness, generally speaking?",
+    "What's something you enjoy doing outside of work?",
+    "Do you have a side gig or passionate cause?Name it.",
+    "What's a good book (doesn't have to be tech related) that you would recommend?",
+    "What kind of music do you like listening to?You could name some genres, or some artists.",
+    "Are you more into a small startup, midsize, or large company vibe?Why?",
+    "People think I do (blank) but I actually do ...",
+];
+
+const levelTwoStrings = [
+    "What is something you wish you saw more of in tech?",
+    "Is tech something you think you’ll be doing for a while?",
+    "What do you find exciting about what you do?",
+    "Where do you call home?",
+    "What is one positive impact on society do you think tech has/will have?",
+    "What is one negative impact on society do you think tech has/will have?",
+    "Would you take a job related to the military?Why or why not?",
+    "Would you take a high-paying job that’s stressful and not passionate or a lesser-paying job (say, 30% less total compensation) that’s perfect for you?Why?",
+    "How are you with time boundaries (i.e., taking breaks during your shift, enjoying your lunch, closing the laptop at 5pm)?",
+    "Who is a tech celebrity/microcelebrity that you love or hate?",
+    "What are your thoughts on AI?",
+    "What are your thoughts on crypto?",
+    "What are your thoughts on personal data and privacy?",
+    "What is something that really surprised you about the tech industry?",
+    "What does a dream day at work look like for you?",
+    "Who do you wish you got to know better at work?",
+    "What do you look forward to being automated, if you hope to see it?If not, explain why.",
+    "What do you fear being automated, if you have any fears?If not, explain why.",
+    "What do you feel is needlessly \"over-tech'd\" or overdesigned, if you have any examples?",
+    "How do you feel about the way salaries are discussed amongst tech workers?",
+    "How do you feel about the way salaries are discussed amongst non-tech workers?",
+    "Have you heard of Blind?What are your thoughts on that site?",
+    "What are your thoughts on how hiring is currently happening in the industry?",
+    "What are your avenues for hearing about tech news/drama, if you hear of it?",
+    "Are you a transplant?If so, describe your experience (could be one sentence).If not, describe your experience as a local.",
+    "Have you heard of alternative policies (e.g. 4-day workweek, full-remote, 3-day weekends, 10% time)?What do you like or not like?",
+    "What are your favorite tropes/stereotypes about tech workers?BONUS: do an impression",
+    "Do you follow any tech content creators (e.g. JomaTech, KRZAM)?",
+    "What is a thing in your life that would simply not exist if it weren't for tech (besides the thing itself, like an iPhone)?For example, certain friends or communities or hobbies",
+    "If your work allows for work from home/hybrid policies, do you like working from home?Hybrid?On-site?If your work does not, would you like these policies?",
+    "If your work does have the chance for remote work, have you ever thought of or did you execute alternative living situations as a result of remote work (digital nomadism, living in a different country/state for an extended time)?",
+    "Who do you consider a \"tech worker\"?Explain.",
+    "What does \"work-life balance\" mean to you?What's your ideal?",
+    "Are you a mentor to anyone?Do you wish to be?",
+    "Do you have a mentor?How did you find them?",
+    "If your work is knowledge work, have you had any experience in academia/research labs?",
+    "What's the highest academic degree level would you like to achieve for you to have your dream job(s)?",
+];
+
+const levelThreeStrings = [
+    "red*How do you think being your gender has influenced your experience?",
+    "How do you think your gender as a whole experiences tech?",
+    "red*Have you ever had to think twice about what you were wearing for work?",
+    "red*Do you worry if having children will affect your employability?",
+    "orange*How do you think being your race/ethnicity has influenced your experience?",
+    "How do you think your race/ethnicity as a whole experiences tech?",
+    "orange*Have you experienced microaggressions before?",
+    "yellow*Have you had to worry about visa issues?If so, what did you experience?",
+    "yellow*Have you had to worry about citizenship or being an \"illegal immigrant\"?How did that affect your experience?",
+    "yellow*Are you an immigrant?If so, how has that affected your job search or experience working in the States?If not, do you know anyone who is in tech?",
+    "yellow*If you're an immigrant, what do you wish your non-immigrant tech workers would know?If you're not, what do you wish your immigrant tech workers would know?",
+    "Do you fear getting too old for the industry?",
+    "Have you experienced feeling \"out of place\" in the industry or at work?",
+    "yellow*Do you have a college degree?If not, what was your journey like to get to where you are now?If so, have you worked with anyone who didn't have one?",
+    "Name a disappointment you've faced.",
+    "Name a victory that you're really proud of!",
+    "green*When was a time you felt misunderstood?",
+    "green*Has politics influenced your experiences at all?(\"politics\" here is meant to be open-ended.)",
+    "green*Have you experienced being gaslit (subtly lied to to the extent you've been made to doubt your perceptions)?",
+    "green*Have you witnessed anything illegal/shady at work before (can be yes/no, pass, or a story)?",
+    "green*Have you had an experience at work that made you cry?",
+    "green*Have you witnessed a coworker cry at or about work?",
+    "green*What subgroup of people do you feel frustrated by and what do you hope they can take into consideration, if they could?",
+    "green*Have coworkers broken your heart before?",
+    "Do you want to make more money in tech?Are you satisfied with your salary?",
+    "What helps you feel motivated to do your job or be in this industry?",
+    "How do you think people see you?",
+    "Have you had an experience or person at work that made you feel hopeful or really looked out/stood up for you?",
+    "What is something you wish you could've said to your boss, but didn't?Why?",
+    "What is something you wish you could've said to your coworker, but didn't?Why?",
+    "If you could reimagine tech (or your company) to be absolutely perfect, what would it be like?",
+    "blue*Do you think you’re paid fairly?",
+    "blue*Have you been fired or laid off before (if you feel comfortable disclosing)?",
+    "How do you think you’ve changed since you’ve joined tech?",
+    "What are your thoughts on the startup model in general?",
+    "blue*What are your thoughts on unions?",
+    "blue*What are your thoughts on HR?",
+    "What is an insecurity you have regarding your career/your job?",
+    "What voices in tech do you wish you knew more about/wish were being uplifted more?",
+    "blue*What do you think of your company's (or past companies') Diversity and Inclusion policies or orgs?",
+    "What are your thoughts/experiences on Employee Resources Groups (ERGs) if your company has them?",
+    "Have you thought about quitting tech?Why?What kept you going, if you're still in it?",
+    "Do you think tech has a low or high barrier to entry?",
+    "What is one thing, if the industry could implement it right now, that you would really want to see happen?",
+    "Do you feel happy/satisfied with how you've conducted your career?",
+    "What is your safe/happy place?",
+    "blue*Do you have disabilities (mental, psychological, or physical)?If you're not open to sharing about them, say \"pass.\"If you are, feel free to share, and also: do you feel comfortable letting your employer know about them?",
+    "blue*Has the way a company handled a disability (mental, psychological, or physical) you have helped or harmed your experience?(This could be not applicable to you.)",
+    "blue*Have you ever had to use drugs to compete at work?",
+    "Do you feel comfortable sharing about your partner or partners to your coworkers?Why or why not?",
+    "How have your experiences with more senior coworkers than you been?",
+    "How have your experiences with more junior coworkers than you been?",
+    "Do you feel your experiences have been generally supportive in resources, team solidarity, knowledge transfer, etc.?",
+];
+
+const levelFourStrings = [
+    "Describe how you are feeling in this moment with three words.",
+    "What question(s) was hardest to answer?",
+    "Whose answer to a question were you most surprised by?",
+    "Feel free to make a request to the people in this room (could be for support, care, advice, a smile, etc.) 🙂",
+    "What do you need the most right now?",
+    "Are you feeling up or down about things currently?",
+    "What have you learned coming out of this conversation that you may have not known before?Or, if you didn't really learn anything, what did you take away?",
+    "Take a deep breath, all the way down to your diaphragm.(Feel free to invite others too.)",
+    "Do you feel like you would be open to having people follow up on anything you've said today?How can they reach out to you if you do?",
+    "Do you feel like anything you said today should stay within this session?",
+    "Have you changed your mind on anything as a result of this session?",
+    "What do you look forward to knowing more about or being inspired to do, if you feel inclined?",
+    "Has this session revealed any blind spots for you?If so, what would they be?",
+    "Are there any threads of thought that you might want to explore or think more about?",
+    "What is something you are grateful for in this moment?",
+    "If there is anyone you would like to thank currently, thank them, or say \"pass.\"",
+    "What resources do you know or can recommend to someone in this group here?",
+]
+
+export const levelOne = parseCardArray(levelOneStrings);
+export const levelTwo = parseCardArray(levelTwoStrings);
+export const levelThree = parseCardArray(levelThreeStrings);
+export const levelFour = parseCardArray(levelFourStrings);
