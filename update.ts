@@ -126,6 +126,7 @@ function jumpToLevel(session: Session, event: JumpToLevelEvent): Session {
         ...session,
         currentCard: 0,
         currentLevel: event.event.level,
+        currentRound: 0
     }
 }
 
