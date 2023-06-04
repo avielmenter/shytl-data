@@ -23,6 +23,7 @@ export type ErrorTypes
 
 export type Error 
     = ParseError
+    | ServerError
     | UpdateError;
 
 export function err<T extends Error>(errorType: ErrorTypes, error: any): T {
