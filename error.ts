@@ -25,5 +25,5 @@ export function err<T extends Error>(errorType: ErrorTypes, error: any): T {
 }
 
 export function isError(error: any): error is Error {
-    return error.type === "Error";
+    return error?.type === "Error";
 }
