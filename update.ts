@@ -16,6 +16,12 @@ export type DrawCardEvent = {
     eventType: "DrawCard"
 }
 
+export type JumpToLevelEvent = {
+    type:  "Event",
+    eventType: "JumpToLevel",
+    event: { level: 1 | 2 | 3 | 4 }
+}
+
 export type RemovePlayerEvent = {
     type: "Event",
     eventType: "RemovePlayer",
@@ -36,6 +42,7 @@ export type UpdateOptionsEvent = {
 export type Event 
     = AddPlayerEvent
     | DrawCardEvent
+    | JumpToLevelEvent
     | RemovePlayerEvent
     | SkipCardEvent
     | UpdateOptionsEvent;
@@ -114,6 +121,14 @@ function drawCard(session: Session, event: DrawCardEvent): Session {
     }
 }
 
+function jumpToLevel(session: Session, event: JumpToLevelEvent): Session {
+    return {
+        ...session,
+        currentCard: 0,
+        currentLevel: event.event.level,
+    }
+}
+
 function removePlayer(session: Session, event: RemovePlayerEvent): Session | UpdateError {
     const playerIndex = session.players.findIndex(p => p.id == event.event.playerID);
 
@@ -149,6 +164,8 @@ export function update(session: Session, event: Event) : Session | UpdateError {
             return addPlayer(session, event);
         case "DrawCard":
             return drawCard(session, event);
+        case "JumpToLevel":
+            return jumpToLevel(session, event);
         case "RemovePlayer":
             return removePlayer(session, event);
         case "SkipCard":
