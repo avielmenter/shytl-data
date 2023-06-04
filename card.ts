@@ -18,7 +18,7 @@ export function parseCard(card: any) : Card | ParseError {
         return err<ParseError>("ParseError", "Not a valid card object: " + JSON.stringify(card));
 
     const text = String(card.text);
-    const contentTag = parseContentTag(card.contentTag);
+    const contentTag = card.contentTag === undefined ? undefined : parseContentTag(card.contentTag);
 
     if (isError(contentTag))
         return contentTag;
