@@ -65,12 +65,12 @@ export function parseGame(rawGame: any): Game | ParseError{
         return err<ParseError>("ParseError", "Not a Game object: " + JSON.stringify(rawGame));
 
     const GameID: GameID | undefined = String(rawGame.id);
-    const created: Date | undefined = rawGame.created instanceof Date ? rawGame.created : undefined;
+    const created: Date | undefined = new Date(rawGame.created);
 
-    const levelOne = parseArray(rawGame.cards?.levelOne, parseCard);
-    const levelTwo = parseArray(rawGame.cards?.levelTwo, parseCard);
-    const levelThree = parseArray(rawGame.cards?.levelThree, parseCard);
-    const levelFour = parseArray(rawGame.cards?.levelFour, parseCard);
+    const levelOne = parseArray(rawGame.cards[0], parseCard);
+    const levelTwo = parseArray(rawGame.cards[1], parseCard);
+    const levelThree = parseArray(rawGame.cards[2], parseCard);
+    const levelFour = parseArray(rawGame.cards[3], parseCard);
 
     const cards: [ Card[], Card[], Card[], Card[] ] = [ levelOne, levelTwo, levelThree, levelFour ];
     
