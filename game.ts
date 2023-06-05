@@ -6,10 +6,10 @@ import { User, parseUser } from './user';
 
 import { err, isError, ParseError } from './error';
 
-export type SessionID = string;
+export type GameID = string;
 
-export type Session = {
-    id: SessionID,
+export type Game = {
+    id: GameID,
     created: Date,
     cards: [ Card[], Card[], Card[], Card[] ],
     currentAsker: number | null,
@@ -35,7 +35,7 @@ function shuffle(cards: Card[]): Card[] {
     return shuffled;
 }
 
-export function createSessionFromId(id: SessionID) : Session {
+export function createGameFromId(id: GameID) : Game {
     return { 
         id, 
         created: new Date(), 
@@ -60,29 +60,29 @@ const parseLevelNumber: (level: any) => 1 | 2 | 3 | 4 | ParseError = (level: any
         ? level
         : err<ParseError>("ParseError", "Not a level number: " + JSON.stringify(level));
 
-export function parseSession(rawSession: any): Session | ParseError{
-    if (!rawSession)
-        return err<ParseError>("ParseError", "Not a Session object: " + JSON.stringify(rawSession));
+export function parseGame(rawGame: any): Game | ParseError{
+    if (!rawGame)
+        return err<ParseError>("ParseError", "Not a Game object: " + JSON.stringify(rawGame));
 
-    const sessionId: SessionID | undefined = String(rawSession.id);
-    const created: Date | undefined = rawSession.created instanceof Date ? rawSession.created : undefined;
+    const GameID: GameID | undefined = String(rawGame.id);
+    const created: Date | undefined = rawGame.created instanceof Date ? rawGame.created : undefined;
 
-    const levelOne = parseArray(rawSession.cards?.levelOne, parseCard);
-    const levelTwo = parseArray(rawSession.cards?.levelTwo, parseCard);
-    const levelThree = parseArray(rawSession.cards?.levelThree, parseCard);
-    const levelFour = parseArray(rawSession.cards?.levelFour, parseCard);
+    const levelOne = parseArray(rawGame.cards?.levelOne, parseCard);
+    const levelTwo = parseArray(rawGame.cards?.levelTwo, parseCard);
+    const levelThree = parseArray(rawGame.cards?.levelThree, parseCard);
+    const levelFour = parseArray(rawGame.cards?.levelFour, parseCard);
 
     const cards: [ Card[], Card[], Card[], Card[] ] = [ levelOne, levelTwo, levelThree, levelFour ];
     
-    const currentAsker = parseOrNull(rawSession.currentAsker, parseWholeNumber);
-    const currentAnswerer = parseOrNull(rawSession.currentAnswerer, parseWholeNumber);
+    const currentAsker = parseOrNull(rawGame.currentAsker, parseWholeNumber);
+    const currentAnswerer = parseOrNull(rawGame.currentAnswerer, parseWholeNumber);
 
-    const currentCard = parseWholeNumber(rawSession.currentCard);
+    const currentCard = parseWholeNumber(rawGame.currentCard);
 
-    const currentLevel = parseLevelNumber(rawSession.currentLevel);
-    const currentRound = parseWholeNumber(rawSession.currentCard);
+    const currentLevel = parseLevelNumber(rawGame.currentLevel);
+    const currentRound = parseWholeNumber(rawGame.currentCard);
 
-    const options = parseOptions(rawSession.options);
+    const options = parseOptions(rawGame.options);
 
     if (isError(currentAsker))      return currentAsker;
     if (isError(currentAnswerer))   return currentAnswerer;
@@ -91,11 +91,11 @@ export function parseSession(rawSession: any): Session | ParseError{
     if (isError(currentRound))      return currentRound;
     if (isError(options))           return options;
 
-    const players = parseArray(rawSession.players, parseUser);
+    const players = parseArray(rawGame.players, parseUser);
 
-    return sessionId && created
+    return GameID && created
         ? { 
-            id: sessionId, 
+            id: GameID, 
             created,
             cards,
             currentAsker,
@@ -105,5 +105,5 @@ export function parseSession(rawSession: any): Session | ParseError{
             currentRound,
             options,
             players
-        } : err<ParseError>("ParseError", "Not a Session object: " + JSON.stringify(rawSession));
+        } : err<ParseError>("ParseError", "Not a Game object: " + JSON.stringify(rawGame));
 }

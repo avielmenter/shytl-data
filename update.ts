@@ -1,6 +1,6 @@
 import { err, UpdateError } from './error';
 import { Options } from './options';
-import { Session } from "./session";
+import { Game } from "./game";
 import { User, UserID } from './user';
 
 // EVENT TYPES
@@ -65,113 +65,113 @@ function randIntExcept(start: number, end: number, except: number): number {
 
 // EVENT FUNCTIONS
 
-function addPlayer(session: Session, event: AddPlayerEvent): Session | UpdateError {
-    if (session.players.filter(p => p.id == event.event.player.id).length > 0)
+function addPlayer(game: Game, event: AddPlayerEvent): Game | UpdateError {
+    if (game.players.filter(p => p.id == event.event.player.id).length > 0)
         return err<UpdateError>("UpdateError", "User is already playing the game: " + JSON.stringify(event.event.player));
 
-    let players = [ ...session.players ];
+    let players = [ ...game.players ];
     players.push(event.event.player);
 
     return {
-        ...session,
+        ...game,
         players 
     };
 }
 
-function drawCard(session: Session, event: DrawCardEvent): Session {
-    const outOfCards = session.currentCard == session.cards[session.currentLevel - 1].length;
+function drawCard(game: Game, event: DrawCardEvent): Game {
+    const outOfCards = game.currentCard == game.cards[game.currentLevel - 1].length;
 
-    const nextAsker = session.currentAsker === null
+    const nextAsker = game.currentAsker === null
         ? 0
-        : session.currentAsker + 1;
+        : game.currentAsker + 1;
 
-    if (nextAsker < session.players.length && !outOfCards) {   // if we don't need to go to the next round or level
+    if (nextAsker < game.players.length && !outOfCards) {   // if we don't need to go to the next round or level
         return {
-            ...session,
+            ...game,
             currentAsker: nextAsker,
-            currentAnswerer: randIntExcept(0, session.players.length, nextAsker),
-            currentCard: session.currentCard + 1
+            currentAnswerer: randIntExcept(0, game.players.length, nextAsker),
+            currentCard: game.currentCard + 1
         }
-    } else if (session.currentRound < session.options.rounds - 1 && !outOfCards) { // if we need to go to the next round, but not the next level 
+    } else if (game.currentRound < game.options.rounds - 1 && !outOfCards) { // if we need to go to the next round, but not the next level 
         return {
-            ...session,
+            ...game,
             currentAsker: 0,
-            currentAnswerer: randIntExcept(0, session.players.length, 0),
-            currentCard: session.currentCard + 1,
-            currentRound: session.currentRound + 1
+            currentAnswerer: randIntExcept(0, game.players.length, 0),
+            currentCard: game.currentCard + 1,
+            currentRound: game.currentRound + 1
         }
-    } else if (session.currentLevel < 4) {    // if we need to go to the next level
+    } else if (game.currentLevel < 4) {    // if we need to go to the next level
         return {
-            ...session,
+            ...game,
             currentAsker: 0,
-            currentAnswerer: randIntExcept(0, session.players.length, 0),
+            currentAnswerer: randIntExcept(0, game.players.length, 0),
             currentCard: 0,
-            currentLevel: session.currentLevel + 1 as (1 | 2 | 3 | 4),  // typescript doesn't understand that ((1 | 2 | 3 | 4) && !4) + 1 = (2 | 3 | 4)
+            currentLevel: game.currentLevel + 1 as (1 | 2 | 3 | 4),  // typescript doesn't understand that ((1 | 2 | 3 | 4) && !4) + 1 = (2 | 3 | 4)
             currentRound: 0,
         }
     } else {    // if the game needs to end
         return {
-            ...session,
+            ...game,
             currentAsker: null,
             currentAnswerer: null,
-            currentCard: session.cards[3].length,
+            currentCard: game.cards[3].length,
             currentLevel: 4,
-            currentRound: session.options.rounds
+            currentRound: game.options.rounds
         }
     }
 }
 
-function jumpToLevel(session: Session, event: JumpToLevelEvent): Session {
+function jumpToLevel(game: Game, event: JumpToLevelEvent): Game {
     return {
-        ...session,
+        ...game,
         currentCard: 0,
         currentLevel: event.event.level,
         currentRound: 0
     }
 }
 
-function removePlayer(session: Session, event: RemovePlayerEvent): Session | UpdateError {
-    const playerIndex = session.players.findIndex(p => p.id == event.event.playerID);
+function removePlayer(game: Game, event: RemovePlayerEvent): Game | UpdateError {
+    const playerIndex = game.players.findIndex(p => p.id == event.event.playerID);
 
     if (playerIndex == -1)
-        return session;
+        return game;
     else
         return {
-            ...session,
-            currentAsker: adjustPlayerIndex(session.currentAsker, playerIndex),
-            currentAnswerer: adjustPlayerIndex(session.currentAnswerer, playerIndex),
-            players: session.players.filter(p => p.id != event.event.playerID)
+            ...game,
+            currentAsker: adjustPlayerIndex(game.currentAsker, playerIndex),
+            currentAnswerer: adjustPlayerIndex(game.currentAnswerer, playerIndex),
+            players: game.players.filter(p => p.id != event.event.playerID)
         };
 }
 
-function skipCard(session: Session, event: SkipCardEvent): Session {
-    if (session.currentCard >= session.cards[session.currentLevel - 1].length)
-        return session;
+function skipCard(game: Game, event: SkipCardEvent): Game {
+    if (game.currentCard >= game.cards[game.currentLevel - 1].length)
+        return game;
     return {
-        ...session,
-        currentCard: session.currentCard + 1
+        ...game,
+        currentCard: game.currentCard + 1
     };
 }
 
-function updateOptions(session: Session, event: UpdateOptionsEvent): Session {
-    return { ...session, options: event.event.options };
+function updateOptions(game: Game, event: UpdateOptionsEvent): Game {
+    return { ...game, options: event.event.options };
 }
 
 // REDUCER
 
-export function update(session: Session, event: Event) : Session | UpdateError {
+export function update(game: Game, event: Event) : Game | UpdateError {
     switch (event.eventType) {
         case "AddPlayer":
-            return addPlayer(session, event);
+            return addPlayer(game, event);
         case "DrawCard":
-            return drawCard(session, event);
+            return drawCard(game, event);
         case "JumpToLevel":
-            return jumpToLevel(session, event);
+            return jumpToLevel(game, event);
         case "RemovePlayer":
-            return removePlayer(session, event);
+            return removePlayer(game, event);
         case "SkipCard":
-        return skipCard(session, event);
+            return skipCard(game, event);
         case "UpdateOptions":
-            return updateOptions(session, event);   
+            return updateOptions(game, event);   
     }
 }
