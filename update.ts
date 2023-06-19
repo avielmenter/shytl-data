@@ -147,6 +147,10 @@ function removePlayer(game: Game, event: RemovePlayerEvent): Game | UpdateError 
 function skipCard(game: Game, event: SkipCardEvent): Game {
     if (game.currentCard >= game.cards[game.currentLevel - 1].length)
         return game;
+    
+    let skipped = JSON.parse(JSON.stringify(game.skipped));
+    skipped[game.currentLevel].push(game.currentCard);
+
     return {
         ...game,
         currentCard: game.currentCard + 1
