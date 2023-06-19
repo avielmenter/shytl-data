@@ -153,6 +153,7 @@ function skipCard(game: Game, event: SkipCardEvent): Game {
 
     return {
         ...game,
+        skipped,
         currentCard: game.currentCard + 1
     };
 }
