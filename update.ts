@@ -149,7 +149,7 @@ function skipCard(game: Game, event: SkipCardEvent): Game {
         return game;
     
     let skipped = JSON.parse(JSON.stringify(game.skipped));
-    skipped[game.currentLevel].push(game.currentCard);
+    skipped[game.currentLevel - 1].push(game.currentCard);
 
     return {
         ...game,
