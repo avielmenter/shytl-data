@@ -1,10 +1,13 @@
-import { ParseError, err, isError } from "./error";
+import { err, isError, ParseError } from "./error";
 
 export type ContentTag = "red" | "orange" | "yellow" | "green";
 
 export type Card = {
-    text: string,
-    contentTag?: ContentTag
+    asker?: string | undefined,
+    answerer?: string | undefined,
+    contentTag?: ContentTag,
+    skipped: boolean,
+    text: string
 }
 
 export function parseContentTag(tag: any): ContentTag | ParseError {
@@ -16,17 +19,21 @@ export function parseContentTag(tag: any): ContentTag | ParseError {
 export function parseCard(card: any) : Card | ParseError {
     if (typeof card?.text !== "string")
         return err<ParseError>("ParseError", "Not a valid card object: " + JSON.stringify(card));
-
-    const text = String(card.text);
+    
+    const asker = card.asker === undefined ? undefined : card.asker;
+    const answerer = card.answerer === undefined ? undefined : card.answerer;
     const contentTag = card.contentTag === undefined ? undefined : parseContentTag(card.contentTag);
+    const skipped = card === undefined ? undefined : card.skipped;
+    const text = String(card.text);
 
     if (isError(contentTag))
         return contentTag;
 
-    return { text, contentTag };
+    return { asker, answerer, contentTag, skipped, text };
 }
 
 export const FinalCard: Card = {
-    text: "You have finished all the cards in this level!",
-    contentTag: undefined
+    contentTag: undefined,
+    skipped: false,
+    text: "You have finished all the cards in this game!"
 };

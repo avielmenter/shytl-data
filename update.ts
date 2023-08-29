@@ -19,7 +19,7 @@ export type DrawCardEvent = {
 export type JumpToLevelEvent = {
     type:  "Event",
     eventType: "JumpToLevel",
-    event: { level: 1 | 2 | 3 | 4 }
+    event: { level: number }
 }
 
 export type RemovePlayerEvent = {
@@ -79,43 +79,89 @@ function addPlayer(game: Game, event: AddPlayerEvent): Game | UpdateError {
 }
 
 function drawCard(game: Game, event: DrawCardEvent): Game {
-    const outOfCards = game.currentCard == game.cards[game.currentLevel - 1].length;
-
     const nextAsker = game.currentAsker === null
         ? 0
         : game.currentAsker + 1;
+    
+    const currentCard = game.cards[game.currentLevel].length >= 0 ? game.cards[game.currentLevel][0] : undefined;
+    
+    // if we end up drawing a new card 1 card from the front, 
+    // remove the card by updating this level's cards to be 1 card less from the front
+    let updatedCards = game.cards;
+    if (currentCard !== undefined) updatedCards[game.currentLevel] = updatedCards[game.currentLevel].slice(1);
 
-    if (nextAsker < game.players.length && !outOfCards) {   // if we don't need to go to the next round or level
+    const updatedCardHistory = game.currentCard !== undefined ? [game.currentCard, ... game.cardHistory] : game.cardHistory;
+
+    if (nextAsker < game.players.length && currentCard !== undefined) {   // if we don't need to go to the next round or level
+        const updatedCurrentAskerIndex = nextAsker;
+        const updatedCurrentAnswererIndex = randIntExcept(0, game.players.length, nextAsker);
+
+        const updatedCurrentCard = {
+            ...currentCard,
+            cards: updatedCards,
+            cardHistory: updatedCardHistory,
+            asker: game.players[updatedCurrentAskerIndex].name,
+            answerer: game.players[updatedCurrentAnswererIndex].name 
+        };
+
         return {
             ...game,
+            cards: updatedCards,
+            cardHistory: updatedCardHistory,
             currentAsker: nextAsker,
             currentAnswerer: randIntExcept(0, game.players.length, nextAsker),
-            currentCard: game.currentCard + 1
+            currentCard: updatedCurrentCard
         }
-    } else if (game.currentRound < game.options.rounds - 1 && !outOfCards) { // if we need to go to the next round, but not the next level 
+    } else if (game.currentRound < game.options.rounds - 1 && currentCard !== undefined) { // if we need to go to the next round, but not the next level 
+        const updatedCurrentAskerIndex = 0;
+        const updatedCurrentAnswererIndex = randIntExcept(0, game.players.length, 0);
+
+        const updatedCurrentCard = {
+            ...currentCard,
+            cards: updatedCards,
+            cardHistory: updatedCardHistory,
+            asker: game.players[updatedCurrentAskerIndex].name,
+            answerer: game.players[updatedCurrentAnswererIndex].name 
+        };
+
         return {
             ...game,
+            cards: updatedCards,
+            cardHistory: updatedCardHistory,
             currentAsker: 0,
             currentAnswerer: randIntExcept(0, game.players.length, 0),
-            currentCard: game.currentCard + 1,
+            currentCard: updatedCurrentCard,
             currentRound: game.currentRound + 1
         }
-    } else if (game.currentLevel < 4) {    // if we need to go to the next level
+    } else if (game.currentLevel < game.cards.length-1) {    // if we need to go to the next level
+        const updatedCurrentAskerIndex = 0;
+        const updatedCurrentAnswererIndex = randIntExcept(0, game.players.length, 0);
+
+        const updatedCurrentCard = {
+            ... game.cards[game.currentLevel + 1][0],
+            asker: game.players[updatedCurrentAskerIndex].name,
+            answerer: game.players[updatedCurrentAnswererIndex].name
+        };
+
         return {
             ...game,
+            cards: updatedCards,
+            cardHistory: updatedCardHistory,
             currentAsker: 0,
             currentAnswerer: randIntExcept(0, game.players.length, 0),
-            currentCard: 0,
-            currentLevel: game.currentLevel + 1 as (1 | 2 | 3 | 4),  // typescript doesn't understand that ((1 | 2 | 3 | 4) && !4) + 1 = (2 | 3 | 4)
-            currentRound: 0,
+            currentCard: updatedCurrentCard,
+            currentLevel: game.currentLevel + 1,
+            currentRound: 0
         }
-    } else {    // if the game needs to end
+    } else {    // if the game needs to end/we are on the last level
         return {
             ...game,
+            cards: updatedCards,
+            cardHistory: updatedCardHistory,
             currentAsker: null,
             currentAnswerer: null,
-            currentCard: game.cards[3].length,
-            currentLevel: 4,
+            currentCard: undefined,
+            currentLevel: game.cards.length-1,
             currentRound: game.options.rounds
         }
     }
@@ -124,7 +170,7 @@ function drawCard(game: Game, event: DrawCardEvent): Game {
 function jumpToLevel(game: Game, event: JumpToLevelEvent): Game {
     return {
         ...game,
-        currentCard: 0,
+        currentCard: game.cards[event.event.level][0],
         currentLevel: event.event.level,
         currentRound: 0
     }
@@ -145,16 +191,37 @@ function removePlayer(game: Game, event: RemovePlayerEvent): Game | UpdateError 
 }
 
 function skipCard(game: Game, event: SkipCardEvent): Game {
-    if (game.currentCard >= game.cards[game.currentLevel - 1].length)
+    if (game.currentCard === undefined)
         return game;
     
-    let skipped = JSON.parse(JSON.stringify(game.skipped));
-    skipped[game.currentLevel - 1].push(game.currentCard);
+    const updatedCardToSkipped = {
+        ...game.currentCard,
+        skipped: true
+    };
+
+    const updatedCurrentCard = game.cards[game.currentLevel].length >= 0 && game.currentAsker !== null && game.currentAnswerer !== null
+        ? {
+            ...game.cards[game.currentLevel][0],
+            asker: game.players[game.currentAsker].name,
+            answerer: game.players[game.currentAnswerer].name
+        }
+        : undefined;
+    
+    // if we end up drawing a new card 1 card from the front, 
+    // remove the card by updating this level's cards to be 1 card less from the front
+    let updatedCards = game.cards;
+    if (updatedCurrentCard !== undefined) updatedCards[game.currentLevel] = updatedCards[game.currentLevel].slice(1);
+
+    const updatedCardHistory = [
+        updatedCardToSkipped,
+        ...game.cardHistory
+    ]
 
     return {
         ...game,
-        skipped,
-        currentCard: game.currentCard + 1
+        cards: updatedCards,
+        cardHistory: updatedCardHistory,
+        currentCard: updatedCurrentCard
     };
 }
 

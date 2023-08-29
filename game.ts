@@ -13,11 +13,11 @@ export type Game = {
     id: GameID,
     created: Date,
     cards: [ Card[], Card[], Card[], Card[] ],
-    skipped: [ CardIndex[], CardIndex[], CardIndex[], CardIndex[] ],
+    cardHistory: Card[],
     currentAsker: number | null,
     currentAnswerer: number | null,
-    currentCard: CardIndex,
-    currentLevel: 1 | 2 | 3 | 4,
+    currentCard: Card | undefined,
+    currentLevel: number,
     currentRound: number,
     players: User[],
     options: Options
@@ -47,21 +47,16 @@ export function createGameFromId(id: GameID) : Game {
             shuffle(Levels.levelThree),
             shuffle(Levels.levelFour)
         ],
-        skipped: [ [], [], [], [] ],
+        cardHistory: [],
         currentAsker: null,
         currentAnswerer: null, 
-        currentCard: 0,
-        currentLevel: 1, 
+        currentCard: undefined,
+        currentLevel: 0, 
         currentRound: 0, 
         options: { rounds: 1, contentTagsOn: true },
         players: []
     };
 }
-
-const parseLevelNumber: (level: any) => 1 | 2 | 3 | 4 | ParseError = (level: any) => 
-    level === 1 || level === 2 || level === 3 || level == 4
-        ? level
-        : err<ParseError>("ParseError", "Not a level number: " + JSON.stringify(level));
 
 export function parseGame(rawGame: any): Game | ParseError{
     if (!rawGame)
@@ -75,20 +70,15 @@ export function parseGame(rawGame: any): Game | ParseError{
     const levelThree = parseArray(rawGame.cards[2], parseCard);
     const levelFour = parseArray(rawGame.cards[3], parseCard);
 
-    const skipOne = parseArray(rawGame.skipped[0], parseWholeNumber);
-    const skipTwo = parseArray(rawGame.skipped[1], parseWholeNumber);
-    const skipThree = parseArray(rawGame.skipped[2], parseWholeNumber);
-    const skipFour = parseArray(rawGame.skipped[3], parseWholeNumber);
-
     const cards: [ Card[], Card[], Card[], Card[] ] = [ levelOne, levelTwo, levelThree, levelFour ];
-    const skipped: [ CardIndex[], CardIndex[], CardIndex[], CardIndex[] ] = [ skipOne, skipTwo, skipThree, skipFour ];
-    
+    const cardHistory: Card[] = [];
+
     const currentAsker = parseOrNull(rawGame.currentAsker, parseWholeNumber);
     const currentAnswerer = parseOrNull(rawGame.currentAnswerer, parseWholeNumber);
 
-    const currentCard = parseWholeNumber(rawGame.currentCard);
+    const currentCard = parseCard(rawGame.currentCard);
 
-    const currentLevel = parseLevelNumber(rawGame.currentLevel);
+    const currentLevel = parseWholeNumber(rawGame.currentLevel);
     const currentRound = parseWholeNumber(rawGame.currentCard);
 
     const options = parseOptions(rawGame.options);
@@ -107,7 +97,7 @@ export function parseGame(rawGame: any): Game | ParseError{
             id: GameID, 
             created,
             cards,
-            skipped,
+            cardHistory,
             currentAsker,
             currentAnswerer,
             currentCard,
